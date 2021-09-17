@@ -84,13 +84,10 @@ function App() {
 
     const newStartIndex = ~~(scrollTop / itemHeight);
 
-    console.log(11111);
-
     // 如果startIndex没有改变 则不操作
-    if (startIndex === newStartIndex) {
-      console.log(22222);
-      return;
-    }
+    // if (startIndex === newStartIndex) {
+    //   return;
+    // }
 
     // 更新滚动第一个元素的下标
     setStartIndex(newStartIndex);
