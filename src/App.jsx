@@ -39,15 +39,45 @@ function App() {
 
   // 只填充满屏幕的数据
   const showData = useMemo(() => {
-    console.log('showData changed');
-    return data.slice(startIndex, endIndex);
+    let preloadStartIndex = 0;
+
+    // 首屏
+    if (startIndex <= containerSize) {
+      preloadStartIndex = 0;
+    } else {
+      preloadStartIndex = startIndex - containerSize;
+    }
+
+    let preloadEndIndex = 0;
+
+    preloadEndIndex = preloadStartIndex + containerSize * 2;
+
+    // return data.slice(startIndex, endIndex);
+    return data.slice(preloadStartIndex, preloadEndIndex);
   }, [data, startIndex, endIndex]);
 
   const blankFillStyle = useMemo(() => {
+    let preloadStartIndex = 0;
+
+    // 首屏
+    if (startIndex <= containerSize) {
+      preloadStartIndex = 0;
+    } else {
+      preloadStartIndex = startIndex - containerSize;
+    }
+
+    let preloadEndIndex = 0;
+
+    preloadEndIndex = preloadStartIndex + containerSize * 2;
+
+    // // 上方空白占位
+    // const topBlankHeight = startIndex * itemHeight;
+    // // 下方空白占位
+    // const bottomBlankHeight = (maxIndex - endIndex) * itemHeight;
     // 上方空白占位
-    const topBlankHeight = startIndex * itemHeight;
+    const topBlankHeight = preloadStartIndex * itemHeight;
     // 下方空白占位
-    const bottomBlankHeight = (maxIndex - endIndex) * itemHeight;
+    const bottomBlankHeight = (maxIndex - preloadEndIndex) * itemHeight;
 
     return {
       paddingTop: topBlankHeight,
@@ -78,44 +108,42 @@ function App() {
     setContainSize(newContainSize);
   };
 
+  let timer = null;
+
   // 监听滚动
-  const handleScroll = (e) => {
+  const handleScroll = () => {
+    console.log(Date.now());
+
+    timer = setTimeout(() => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+
+      console.log('Date.now()', Date.now());
+      updateShowData();
+    }, 30);
+  };
+
+  const updateShowData = () => {
     const scrollTop = containerRef?.current?.scrollTop;
 
     const newStartIndex = ~~(scrollTop / itemHeight);
 
     // 如果startIndex没有改变 则不操作
-    // if (startIndex === newStartIndex) {
-    //   return;
-    // }
+    if (startIndex === newStartIndex) {
+      return;
+    }
 
     // 更新滚动第一个元素的下标
     setStartIndex(newStartIndex);
 
-    if (startIndex + containerSize > data.length - 1 && !isRequest) {
+    // 新的index是否触发到底
+    if (newStartIndex + containerSize > data.length - 1 && !isRequest) {
       console.log('滚动到底部, 追加请求数据');
       getData(20);
     }
   };
-
-  // const updateShowData = () => {
-  //   const scrollTop = containerRef.current.scrollTop;
-
-  //   const newStartIndex = ~~(scrollTop / itemHeight);
-
-  //   // 如果startIndex没有改变 则不操作
-  //   if (startIndex === newStartIndex) {
-  //     return;
-  //   }
-
-  //   // 更新滚动第一个元素的下标
-  //   setStartIndex(newStartIndex);
-
-  //   if (startIndex + containerSize > data.length - 1 && !isRequest) {
-  //     console.log('滚动到底部, 追加请求数据');
-  //     getData(20);
-  //   }
-  // }
 
   // 第一次挂载页面
   useEffect(() => {
